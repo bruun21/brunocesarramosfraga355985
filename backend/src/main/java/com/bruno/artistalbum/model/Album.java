@@ -32,7 +32,7 @@ public class Album {
 
     @ManyToMany(mappedBy = "albuns", fetch = FetchType.LAZY)
     @JsonIgnore
-    private Set<Artista> istas = new HashSet<>();
+    private Set<Artista> artistas = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "album_imagens", joinColumns = @JoinColumn(name = "album_id"))
