@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 
 import java.util.UUID;
 
@@ -19,7 +21,8 @@ public class AlbumController {
     private AlbumService albumService;
 
     @GetMapping
-    public ResponseEntity<Page<AlbumDTO>> listarTodos(Pageable paginacao) {
+    public ResponseEntity<Page<AlbumDTO>> listarTodos(
+            @PageableDefault(page = 0, size = 10, sort = "anoLancamento", direction = Sort.Direction.DESC) Pageable paginacao) {
         return ResponseEntity.ok(albumService.listarTodos(paginacao));
     }
 

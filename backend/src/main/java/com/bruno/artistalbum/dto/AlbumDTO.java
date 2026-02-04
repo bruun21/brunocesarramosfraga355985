@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.ArrayList;
 
 @Data
 @NoArgsConstructor
@@ -24,7 +25,7 @@ public class AlbumDTO {
         this.id = album.getId();
         this.titulo = album.getTitulo();
         this.anoLancamento = album.getAnoLancamento();
-        this.urlsImagens = album.getUrlsImagens();
+        this.urlsImagens = album.getUrlsImagens() != null ? new ArrayList<>(album.getUrlsImagens()) : null;
         this.criadoEm = album.getCriadoEm();
         this.atualizadoEm = album.getAtualizadoEm();
     }
