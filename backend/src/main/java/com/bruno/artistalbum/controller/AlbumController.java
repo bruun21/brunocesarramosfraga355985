@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import java.util.UUID;
 
@@ -45,5 +47,11 @@ public class AlbumController {
     public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         albumService.deletar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/imagem", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AlbumDTO> adicionarImagem(@PathVariable UUID id,
+            @RequestParam("imagem") MultipartFile imagem) {
+        return ResponseEntity.ok(albumService.adicionarImagem(id, imagem));
     }
 }

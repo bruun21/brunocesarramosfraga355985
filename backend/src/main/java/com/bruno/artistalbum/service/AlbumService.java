@@ -9,6 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.time.Instant;
 
 import java.util.UUID;
 
@@ -17,6 +20,9 @@ public class AlbumService {
 
     @Autowired
     private AlbumRepository albumRepository;
+
+    @Autowired
+    private MinioService minioService;
 
     @Transactional(readOnly = true)
     public Page<AlbumDTO> listarTodos(Pageable paginacao) {
@@ -57,5 +63,27 @@ public class AlbumService {
             throw new RegraDeNegocioException("Album não encontrado");
         }
         albumRepository.deleteById(id);
+    }
+
+    @Transactional
+    public AlbumDTO adicionarImagem(UUID id, MultipartFile imagem) {
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new RegraDeNegocioException("Album não encontrado"));
+
+        String filename = "album-" + id + "-" + Instant.now().toEpochMilli() + "-" + imagem.getOriginalFilename();
+
+        try {
+            String url = minioService.uploadFile(filename, imagem.getInputStream(), imagem.getContentType());
+
+            if (album.getUrlsImagens() == null) {
+                album.setUrlsImagens(new java.util.ArrayList<>());
+            }
+            album.getUrlsImagens().add(url);
+
+            album = albumRepository.save(album);
+            return new AlbumDTO(album);
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao processar imagem", e);
+        }
     }
 }
