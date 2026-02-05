@@ -6,4 +6,5 @@ CREATE TABLE usuarios (
 );
 
 INSERT INTO usuarios (id, email, senha, perfil) VALUES 
-('f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a99', 'admin@email.com', '$2b$12$V6XaIh8A.L9uUAezCabSJOhpnScNzHPaT99kwkTzegR3lJdJnaW7O', 'ADMIN');
+('f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a99', 'admin@email.com', '$2a$10$KnUWjaUPxe9cos5hXdTkZOAHotCYsCO4qMsKSMWrDxokjG.aTeHji', 'ADMIN');
+-- Senha: admin123

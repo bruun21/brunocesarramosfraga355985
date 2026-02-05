@@ -14,7 +14,7 @@ import org.springframework.data.domain.Sort;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/artistas")
+@RequestMapping("/api/v1/artistas")
 public class ArtistaController {
 
     @Autowired

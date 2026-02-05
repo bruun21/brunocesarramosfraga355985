@@ -16,7 +16,7 @@ import org.springframework.http.MediaType;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/albuns")
+@RequestMapping("/api/v1/albuns")
 public class AlbumController {
 
     @Autowired
