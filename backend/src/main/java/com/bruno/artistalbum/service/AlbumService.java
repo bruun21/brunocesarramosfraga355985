@@ -30,14 +30,15 @@ public class AlbumService {
 
     @Transactional(readOnly = true)
     public Page<AlbumDTO> listarTodos(Pageable paginacao) {
-        return albumRepository.findAll(paginacao).map(AlbumDTO::new);
+        return albumRepository.findAll(paginacao)
+                .map(album -> new AlbumDTO(album, minioService));
     }
 
     @Transactional(readOnly = true)
     public AlbumDTO buscarPorId(UUID id) {
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new RegraDeNegocioException("Album não encontrado"));
-        return new AlbumDTO(album);
+        return new AlbumDTO(album, minioService);
     }
 
     @Transactional
@@ -77,15 +78,18 @@ public class AlbumService {
         String filename = "album-" + id + "-" + Instant.now().toEpochMilli() + "-" + imagem.getOriginalFilename();
 
         try {
-            String url = minioService.uploadFile(filename, imagem.getInputStream(), imagem.getContentType());
+            // uploadFile agora retorna apenas o nome do arquivo
+            String nomeArquivo = minioService.uploadFile(filename, imagem.getInputStream(), imagem.getContentType());
 
             if (album.getUrlsImagens() == null) {
                 album.setUrlsImagens(new java.util.ArrayList<>());
             }
-            album.getUrlsImagens().add(url);
+            // Salva apenas o nome do arquivo no banco
+            album.getUrlsImagens().add(nomeArquivo);
 
             album = albumRepository.save(album);
-            AlbumDTO dto = new AlbumDTO(album);
+            // Gera DTO com URLs presigned para retornar ao cliente
+            AlbumDTO dto = new AlbumDTO(album, minioService);
 
             // Notifica via WebSocket
             messagingTemplate.convertAndSend("/topic/albuns/" + id, dto);
