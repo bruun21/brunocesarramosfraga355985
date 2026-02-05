@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.io.IOException;
 import java.time.Instant;
 
@@ -23,6 +24,9 @@ public class AlbumService {
 
     @Autowired
     private MinioService minioService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @Transactional(readOnly = true)
     public Page<AlbumDTO> listarTodos(Pageable paginacao) {
@@ -81,7 +85,12 @@ public class AlbumService {
             album.getUrlsImagens().add(url);
 
             album = albumRepository.save(album);
-            return new AlbumDTO(album);
+            AlbumDTO dto = new AlbumDTO(album);
+
+            // Notifica via WebSocket
+            messagingTemplate.convertAndSend("/topic/albuns/" + id, dto);
+
+            return dto;
         } catch (IOException e) {
             throw new RuntimeException("Erro ao processar imagem", e);
         }
