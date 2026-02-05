@@ -22,6 +22,7 @@ public class MinioConfiguration {
         return MinioClient.builder()
                 .endpoint(url)
                 .credentials(accessKey, secretKey)
+                .region("us-east-1") // Região padrão para MinIO local
                 .build();
     }
 }
