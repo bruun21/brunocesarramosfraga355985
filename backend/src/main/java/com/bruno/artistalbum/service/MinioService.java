@@ -1,18 +1,15 @@
 package com.bruno.artistalbum.service;
 
 import io.minio.BucketExistsArgs;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.SetBucketPolicyArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
-import io.minio.http.Method;
+import io.minio.SetBucketPolicyArgs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class MinioService {
@@ -61,24 +58,20 @@ public class MinioService {
     }
 
     /**
-     * Gera uma URL pré-assinada com expiração para acesso temporário ao arquivo.
+     * Gera uma URL pública para acesso ao arquivo.
+     * Nota: Em ambiente de produção com S3, deve-se usar presigned URLs com
+     * expiração.
+     * Aqui usamos URLs públicas devido a limitações do MinIO local com assinaturas
+     * AWS4.
      * 
      * @param filename      Nome do arquivo no bucket
-     * @param expiryMinutes Tempo de expiração em minutos (padrão: 30 minutos)
-     * @return URL pré-assinada válida por expiryMinutes
+     * @param expiryMinutes Tempo de expiração (não utilizado em URLs públicas)
+     * @return URL pública para acesso ao arquivo
      */
     public String getPresignedUrl(String filename, int expiryMinutes) {
-        try {
-            return minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .method(Method.GET)
-                            .bucket(bucketName)
-                            .object(filename)
-                            .expiry(expiryMinutes, TimeUnit.MINUTES)
-                            .build());
-        } catch (Exception e) {
-            throw new RuntimeException("Error generating presigned URL for file: " + filename, e);
-        }
+        // Retorna URL pública simples
+        // Em produção, usar: minioClient.getPresignedObjectUrl(...)
+        return publicUrl + "/" + bucketName + "/" + filename;
     }
 
     /**
