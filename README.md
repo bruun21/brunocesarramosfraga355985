@@ -22,15 +22,28 @@ Este projeto é uma solução completa para o gerenciamento de artistas e álbun
 - **Monitoramento:** Spring Actuator (Health, Liveness, Readiness)
 - **Segurança:** JWT com Refresh Token e Rate Limiting
 
-### Decisões Técnicas
+## 🧠 Decisões Técnicas e Racional
 
-1.  **Arquitetura em Camadas:** Utilização do padrão Controller-Service-Repository para separação clara de responsabilidades.
-2.  **Segurança (Requirement Senior A/B):** 
-    - Implementação de **JWT com expiração de 5 minutos** (conforme edital) e fluxo de **Refresh Token** para continuidade da sessão.
-    - **Rate Limiting:** Restrição de 10 requisições por minuto por usuário/IP para proteção contra ataques de força bruta ou DoS.
-3.  **Upload Direto para S3 (Presigned URLs):** Para otimizar o backend, o sistema gera URLs pré-assinadas. O cliente faz o upload diretamente para o MinIO, reduzindo o tráfego de IO no servidor de aplicação.
-4.  **Sincronização de Regionais (Requirement Senior E):** Implementado um serviço agendado que consome uma API externa, realiza o *de x para* de dados e sincroniza o banco de dados local (inativando registros ausentes e atualizando alterações).
-5.  **Relacionamento N:N:** Persistência robusta entre Artistas e Álbuns com sincronização manual de ambos os lados da associação para garantir integridade no JPA.
+### 1. Segurança e Autenticação (Requisitos Sênior A/B)
+- **JWT com Expiração Curta (5 min):** Decidido para cumprir rigorosamente o item (b) do edital. A expiração curta minimiza a janela de uso de um token interceptado.
+- **Refresh Token Pattern:** Implementado para garantir que o usuário não seja deslogado a cada 5 minutos. O sistema renova o Access Token de forma transparente, mantendo a arquitetura **Stateless** (sem necessidade de sessões no servidor), o que facilita a escalabilidade horizontal.
+
+### 2. Gestão de Tráfego e Resiliência (Requisito Sênior C)
+- **Rate Limiting (10 req/min):** Aplicado no nível da aplicação via `Filter`. O racional é proteger o banco de dados e o processamento de álbuns (pesados devido ao MinIO) contra abusos ou ataques de DoS simples, garantindo disponibilidade para todos os usuários.
+
+### 3. Otimização de I/O e Storage (Requisito G)
+- **Upload Direto via Presigned URLs:** Em vez de receber os bytes da imagem no backend e depois enviar ao MinIO (Double Hop), o backend gera uma URL autorizada. 
+    - **Por que?** Isso economiza memória RAM e CPU do servidor de aplicação, permitindo que o cliente faça o upload diretamente para o Storage. O backend atua apenas como o orquestrador da segurança.
+- **URLs Temporárias (30 min):** As imagens não possuem links públicos permanentes. Elas são assinadas sob demanda, garantindo que o acesso aos arquivos seja controlado e expire rapidamente.
+
+### 4. Integridade de Dados e Sincronização (Requisito E)
+- **Sincronização de Regionais (API SEPLAG):** 
+    - **Estratégia de Update:** O sistema busca registros novos, atualiza os existentes e **inativa** (soft-delete) os que não constam mais na API externa.
+    - **Por que?** Inativar em vez de excluir protege a integridade referencial de artistas e álbuns que já estavam vinculados a essas regionais no passado.
+
+### 5. Arquitetura de Domínio e N:N
+- **Relacionamento Bidirecional:** Álbuns e Artistas possuem uma relação de muitos-para-muitos. 
+- **Solução de Recursividade (Bugfix):** Durante os testes, identificamos um `StackOverflowError` causado pelo Lombok na geração de `hashCode/equals`. A decisão foi excluir explicitamente as coleções do cálculo de identidade do objeto para permitir o carregamento Lazy e a persistência circular estável do Hibernate.
 
 ---
 
