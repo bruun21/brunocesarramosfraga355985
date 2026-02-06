@@ -30,6 +30,8 @@ public class Artista {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "artista_album", joinColumns = @JoinColumn(name = "artista_id"), inverseJoinColumns = @JoinColumn(name = "album_id"))
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
     private Set<Album> albuns = new HashSet<>();
 
     @Column(name = "criado_em", updatable = false)

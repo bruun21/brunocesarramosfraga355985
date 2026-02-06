@@ -32,6 +32,8 @@ public class Album {
 
     @ManyToMany(mappedBy = "albuns", fetch = FetchType.LAZY)
     @JsonIgnore
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
     private Set<Artista> artistas = new HashSet<>();
 
     @ElementCollection

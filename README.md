@@ -51,7 +51,7 @@ docker-compose up -d
 
 ### 3. Credenciais de Teste (Seed Data)
 O sistema inicia com dados pré-carregados (Flyway):
-- **Admin:** `admin@artistalbum.com` / `password123`
+- **Admin:** `admin@email.com` / `admin123`
 - **Artistas Base:** Serj Tankian, Michel Teló, System of a Down, etc.
 
 ---
