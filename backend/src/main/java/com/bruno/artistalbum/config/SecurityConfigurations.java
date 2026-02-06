@@ -33,6 +33,7 @@ public class SecurityConfigurations {
                 .authorizeHttpRequests(req -> {
                     req.requestMatchers("/error").permitAll();
                     req.requestMatchers("/api/v1/auth/**").permitAll();
+                    req.requestMatchers("/api/v1/regionais/**").permitAll();
                     req.requestMatchers("/actuator/**").permitAll();
                     req.requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
                     req.anyRequest().authenticated();

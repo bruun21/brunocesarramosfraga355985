@@ -14,7 +14,7 @@ public class Regional {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long internalId;
+    private Integer internalId;
 
     private Integer id; // ID que vem do endpoint
 
