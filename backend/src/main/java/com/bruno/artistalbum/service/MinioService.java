@@ -1,15 +1,19 @@
 package com.bruno.artistalbum.service;
 
 import io.minio.BucketExistsArgs;
+import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.minio.SetBucketPolicyArgs;
+import io.minio.http.Method;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class MinioService {
@@ -79,5 +83,44 @@ public class MinioService {
      */
     public String getPresignedUrl(String filename) {
         return getPresignedUrl(filename, 30);
+    }
+
+    /**
+     * Gera uma URL pré-assinada para UPLOAD (PUT) via cliente.
+     * Requisito H: O backend deverá fornecer uma presigned url para upload.
+     * 
+     * @param filename      Nome do arquivo a ser criado
+     * @param expiryMinutes Tempo de expiração
+     * @return URL pré-assinada para método PUT
+     */
+    public String getUploadPresignedUrl(String filename, int expiryMinutes) {
+        try {
+            return minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.PUT)
+                            .bucket(bucketName)
+                            .object(filename)
+                            .expiry(expiryMinutes, TimeUnit.MINUTES)
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating upload presigned URL", e);
+        }
+    }
+
+    /**
+     * Deleta um arquivo do MinIO.
+     * 
+     * @param filename Nome do arquivo a ser deletado
+     */
+    public void deleteFile(String filename) {
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(filename)
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting file from MinIO: " + filename, e);
+        }
     }
 }

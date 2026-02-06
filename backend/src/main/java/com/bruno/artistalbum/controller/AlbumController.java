@@ -1,6 +1,7 @@
 package com.bruno.artistalbum.controller;
 
 import com.bruno.artistalbum.dto.AlbumDTO;
+import com.bruno.artistalbum.dto.PresignedUploadDTO;
 import com.bruno.artistalbum.service.AlbumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,5 +54,16 @@ public class AlbumController {
     public ResponseEntity<AlbumDTO> adicionarImagem(@PathVariable UUID id,
             @RequestParam("imagem") MultipartFile imagem) {
         return ResponseEntity.ok(albumService.adicionarImagem(id, imagem));
+    }
+
+    @PostMapping("/{id}/presigned-upload")
+    public ResponseEntity<PresignedUploadDTO> obterUrlUpload(@PathVariable UUID id,
+            @RequestParam("extensao") String extensao) {
+        return ResponseEntity.ok(albumService.obterUrlUpload(id, extensao));
+    }
+
+    @PostMapping("/{id}/confirmar-imagem")
+    public ResponseEntity<AlbumDTO> confirmarImagem(@PathVariable UUID id, @RequestParam("filename") String filename) {
+        return ResponseEntity.ok(albumService.confirmarImagem(id, filename));
     }
 }

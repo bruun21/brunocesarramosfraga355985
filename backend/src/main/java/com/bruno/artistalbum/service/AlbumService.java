@@ -64,10 +64,15 @@ public class AlbumService {
 
     @Transactional
     public void deletar(UUID id) {
-        if (!albumRepository.existsById(id)) {
-            throw new RegraDeNegocioException("Album não encontrado");
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new RegraDeNegocioException("Album não encontrado"));
+
+        // Remove imagens do MinIO
+        if (album.getUrlsImagens() != null) {
+            album.getUrlsImagens().forEach(minioService::deleteFile);
         }
-        albumRepository.deleteById(id);
+
+        albumRepository.delete(album);
     }
 
     @Transactional
@@ -98,5 +103,32 @@ public class AlbumService {
         } catch (IOException e) {
             throw new RuntimeException("Erro ao processar imagem", e);
         }
+    }
+
+    @Transactional
+    public com.bruno.artistalbum.dto.PresignedUploadDTO obterUrlUpload(UUID id, String extensao) {
+        if (!albumRepository.existsById(id)) {
+            throw new RegraDeNegocioException("Album não encontrado");
+        }
+
+        String filename = "album-" + id + "-" + Instant.now().toEpochMilli()
+                + (extensao.startsWith(".") ? extensao : "." + extensao);
+        String uploadUrl = minioService.getUploadPresignedUrl(filename, 15); // Expira em 15 min
+
+        return new com.bruno.artistalbum.dto.PresignedUploadDTO(uploadUrl, filename);
+    }
+
+    @Transactional
+    public AlbumDTO confirmarImagem(UUID id, String filename) {
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new RegraDeNegocioException("Album não encontrado"));
+
+        if (album.getUrlsImagens() == null) {
+            album.setUrlsImagens(new java.util.ArrayList<>());
+        }
+        album.getUrlsImagens().add(filename);
+        album = albumRepository.save(album);
+
+        return new AlbumDTO(album, minioService);
     }
 }
