@@ -24,14 +24,28 @@ public class AutenticacaoController {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private com.bruno.artistalbum.repository.UsuarioRepository usuarioRepository;
+
     @PostMapping("/login")
     public ResponseEntity efetuarLogin(@RequestBody @Valid DadosAutenticacao dados) {
         var authenticationToken = new UsernamePasswordAuthenticationToken(dados.email(), dados.senha());
         var authentication = manager.authenticate(authenticationToken);
 
-        var tokenJWT = tokenService.gerarToken((Usuario) authentication.getPrincipal());
+        var usuario = (Usuario) authentication.getPrincipal();
+        var tokenJWT = tokenService.gerarToken(usuario);
+        var refreshToken = tokenService.gerarRefreshToken(usuario);
 
-        return ResponseEntity.ok(new DadosTokenJWT(tokenJWT));
+        return ResponseEntity.ok(new DadosTokenJWT(tokenJWT, refreshToken));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<DadosTokenJWT> renovarToken(@RequestBody DadosTokenJWT dados) {
+        String email = tokenService.getSubject(dados.refreshToken());
+        Usuario usuario = (Usuario) usuarioRepository.findByEmail(email);
+        String novoToken = tokenService.gerarToken(usuario);
+        String novoRefreshToken = tokenService.gerarRefreshToken(usuario);
+        return ResponseEntity.ok(new DadosTokenJWT(novoToken, novoRefreshToken));
     }
 
 }

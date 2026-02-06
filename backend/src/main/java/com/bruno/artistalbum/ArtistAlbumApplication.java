@@ -4,10 +4,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@org.springframework.scheduling.annotation.EnableScheduling
 public class ArtistAlbumApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ArtistAlbumApplication.class, args);
 	}
 
+	@org.springframework.context.annotation.Bean
+	public org.springframework.web.client.RestTemplate restTemplate() {
+		return new org.springframework.web.client.RestTemplate();
+	}
 }

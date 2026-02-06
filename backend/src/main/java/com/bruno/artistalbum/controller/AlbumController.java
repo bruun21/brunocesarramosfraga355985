@@ -24,8 +24,13 @@ public class AlbumController {
     private AlbumService albumService;
 
     @GetMapping
-    public ResponseEntity<Page<AlbumDTO>> listarTodos(
+    public ResponseEntity<Page<AlbumDTO>> listar(
+            @RequestParam(required = false) com.bruno.artistalbum.model.TipoArtista tipoArtista,
             @PageableDefault(page = 0, size = 10, sort = "anoLancamento", direction = Sort.Direction.DESC) Pageable paginacao) {
+
+        if (tipoArtista != null) {
+            return ResponseEntity.ok(albumService.buscarPorTipoArtista(tipoArtista, paginacao));
+        }
         return ResponseEntity.ok(albumService.listarTodos(paginacao));
     }
 

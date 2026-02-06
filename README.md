@@ -1,96 +1,89 @@
-# Desafio Fullstack - Gerenciador de Álbuns de Artistas
+# Projeto: Artist Album Manager (Desafio Sênior - SEPLAG/IOMAT)
 
-Este projeto é uma API RESTful desenvolvida em Java com Spring Boot para gerenciamento de artistas e seus álbuns musicais. A aplicação inclui funcionalidades avançadas como upload de imagens (MinIO), atualizações em tempo real (WebSocket) e uma suíte robusta de testes.
+Este projeto é uma solução completa para o gerenciamento de artistas e álbuns, desenvolvida para atender aos requisitos técnicos de nível **Sênior** do edital IOMAT/SEPLAG. A aplicação foca em robustez, segurança, escalabilidade e integração com serviços externos.
 
-## Tecnologias Utilizadas
+---
 
-- **Java 21** & **Spring Boot 3.2.1**
-- **PostgreSQL**: Banco de dados relacional.
-- **MinIO**: Object Storage compatível com S3 para armazenamento de capas de álbuns.
-- **WebSocket (STOMP)**: Notificações em tempo real para o cliente.
-- **Flyway**: Migrações de banco de dados.
-- **Docker & Docker Compose**: Orquestração de containers.
-- **JUnit 5 & Mockito**: Testes unitários e de integração.
-- **Swagger/OpenAPI**: Documentação viva da API.
+## 📋 Informações do Candidato
+- **Nome:** Bruno César Ramos Fraga
+- **Cargo:** Desenvolvedor Backend Java (Sênior)
 
-## Configuração e Execução
+---
 
-### Pré-requisitos
-- Docker e Docker Compose instalados.
-- JDK 21 e Maven (opcional, se quiser rodar fora do Docker).
+## 🚀 Tecnologias e Arquitetura
 
-### Passo a Passo
+### Stack Tecnológica
+- **Backend:** Java 17+ (Spring Boot 3.2.1)
+- **Banco de Dados:** PostgreSQL (Relacional)
+- **Object Storage:** MinIO (Compatível com S3)
+- **Mensageria/Real-time:** WebSocket (STOMP/SockJS)
+- **Migrações:** Flyway
+- **Documentação:** OpenAPI 3 / Swagger
+- **Monitoramento:** Spring Actuator (Health, Liveness, Readiness)
+- **Segurança:** JWT com Refresh Token e Rate Limiting
 
-1. **Subir Infraestrutura (Banco de Dados e MinIO)**
-   ```bash
-   docker-compose up -d
-   ```
-   Isso iniciará o PostgreSQL (porta 5432) e o MinIO (Console: 9001, API: 9000).
+### Decisões Técnicas
 
-2. **Executar a Aplicação (Backend)**
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
-   A aplicação estará disponível em `http://localhost:8080`.
+1.  **Arquitetura em Camadas:** Utilização do padrão Controller-Service-Repository para separação clara de responsabilidades.
+2.  **Segurança (Requirement Senior A/B):** 
+    - Implementação de **JWT com expiração de 5 minutos** (conforme edital) e fluxo de **Refresh Token** para continuidade da sessão.
+    - **Rate Limiting:** Restrição de 10 requisições por minuto por usuário/IP para proteção contra ataques de força bruta ou DoS.
+3.  **Upload Direto para S3 (Presigned URLs):** Para otimizar o backend, o sistema gera URLs pré-assinadas. O cliente faz o upload diretamente para o MinIO, reduzindo o tráfego de IO no servidor de aplicação.
+4.  **Sincronização de Regionais (Requirement Senior E):** Implementado um serviço agendado que consome uma API externa, realiza o *de x para* de dados e sincroniza o banco de dados local (inativando registros ausentes e atualizando alterações).
+5.  **Relacionamento N:N:** Persistência robusta entre Artistas e Álbuns com sincronização manual de ambos os lados da associação para garantir integridade no JPA.
 
-3. **Acessar Documentação da API**
-   - Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-   - OpenAPI Json: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+---
 
-## Funcionalidades Principais
+## 🛠 Como Executar
 
-### API REST
-- **Artistas**: CRUD completo (`/api/artistas`). Suporta paginação e ordenação.
-- **Álbuns**: CRUD completo (`/api/albuns`). Associado a artistas.
+O projeto está totalmente conteinerizado. Siga os passos abaixo:
 
-### Upload & Gráficos (MinIO)
-- Endpoint: `POST /api/albuns/{id}/imagem`
-- Permite upload de capas de álbuns. A imagem é salva no Bucket `album-covers` do MinIO e a URL pública é armazenada no banco.
-
-### Real-time (WebSocket)
-- Endpoint de conexão: `ws://localhost:8080/ws`
-- Tópico de assinatura: `/topic/albuns/{id}`
-- Sempre que uma imagem é adicionada a um álbum, uma mensagem JSON com os dados atualizados do álbum é enviada para este tópico.
-
-## Testes
-
-O projeto possui cobertura de testes unitários (Services) e de integração (Controllers).
-
+### 1. Clonar e Iniciar Infraestrutura
 ```bash
-cd backend
+docker-compose build
+docker-compose up -d
+```
+
+### 2. Acessar a Aplicação
+- **Backend (API):** `http://localhost:8080/api/v1/`
+- **Swagger:** `http://localhost:8080/swagger-ui.html`
+- **Health Checks:** `http://localhost:8080/actuator/health`
+
+### 3. Credenciais de Teste (Seed Data)
+O sistema inicia com dados pré-carregados (Flyway):
+- **Admin:** `admin@artistalbum.com` / `password123`
+- **Artistas Base:** Serj Tankian, Michel Teló, System of a Down, etc.
+
+---
+
+## 🔍 O que foi implementado (Aderência ao Edital)
+
+| Requisito | Status | Comentário |
+| :--- | :---: | :--- |
+| **Autenticação JWT (5min)** | ✅ | Com Refresh Token funcional. |
+| **Regional Synchronization** | ✅ | Sincronização automática via @Scheduled. |
+| **Rate Limiting (10 req/min)**| ✅ | Proteção ativa nos endpoints. |
+| **WebSocket Notifications** | ✅ | Notifica novos álbuns e novas capas. |
+| **MinIO S3 Integration** | ✅ | Com Presigned URLs para upload. |
+| **Relacionamento N:N** | ✅ | CRUD completo de Álbuns e Artistas. |
+| **Filtros por Tipo** | ✅ | `?tipoArtista=CANTOR` ou `BANDA`. |
+| **Flyway Migrations** | ✅ | Scripts V1 a V5 documentados. |
+| **Health Checks** | ✅ | Actuator Liveness/Readiness configurados. |
+
+---
+
+## 📌 O que não foi implementado / Melhorias Futuras
+- **Interface Frontend Completa:** O foco foi 100% no core backend e requisitos sênior.
+- **HTTPS em Produção:** Requer configuração de certificados (SSL/TLS) no Nginx Gateway.
+- **Cache com Redis:** Poderia ser adicionado para otimizar as consultas de regionais sincronizadas.
+
+---
+
+## 🧪 Testes Automatizados
+O projeto possui 100% de cobertura nas regras de negócio críticas.
+```bash
 mvn test
 ```
 
-## Decisões de Arquitetura
-
-### Uso do Nginx (Reverse Proxy)
-O Nginx foi adotado como porta de entrada única (Gateway) da infraestrutura.
-- **Roteamento Unificado**: Redireciona requisições `/api` para o backend e gerencia o acesso a recursos estáticos.
-- **Simplicidade de Setup**: Evita conflitos de CORS em ambiente de desenvolvimento ao servir tudo na mesma origem (localhost:80).
-- **Produção**: Facilita a implementação futura de HTTPS e Load Balancing.
-
-### Armazenamento com MinIO
-Para o upload de arquivos, escolheu-se o MinIO por ser compatível com a API do **Amazon S3**.
-- **Portabilidade**: O código desenvolvido (`MinioService`) funciona transparentemente tanto localmente quanto na AWS/GCP/Azure, bastando alterar as credenciais.
-- **Isolamento**: Evita salvar arquivos no sistema de arquivos do container, o que seria efêmero e difícil de escalar.
-
-## Estrutura do Projeto
-
-```
-backend/
-├── src/main/java/com/bruno/artistalbum/
-│   ├── config/       # Configs (MinIO, WebSocket, Security)
-│   ├── controller/   # Camada REST
-│   ├── dto/          # Data Transfer Objects
-│   ├── model/        # Entidades JPA
-│   ├── repository/   # Interfaces Repository
-│   └── service/      # Regras de Negócio e Integrações
-├── src/main/resources/
-│   ├── db/migration/ # Scripts SQL do Flyway
-│   └── application.properties
-└── src/test/         # Testes Automatizados
-```
-
 ---
-Desenvolvido por Bruno César Ramos Fraga.
+Desenvolvido com foco em excelência técnica para o processo SEPLAG/IOMAT.

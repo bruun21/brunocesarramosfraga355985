@@ -46,25 +46,34 @@ class ArtistaControllerTest {
     @DisplayName("Deve buscar artista por ID - GET /api/artistas/{id}")
     void deveBuscarArtistaPorId() throws Exception {
         UUID id = UUID.randomUUID();
-        ArtistaDTO dto = new ArtistaDTO(id, "Banda Teste", null);
+        ArtistaDTO dto = new ArtistaDTO();
+        dto.setId(id);
+        dto.setNome("Banda Teste");
+        dto.setTipo(com.bruno.artistalbum.model.TipoArtista.BANDA);
 
         when(artistaService.buscarPorId(id)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/artistas/" + id)
+        mockMvc.perform(get("/api/v1/artistas/" + id)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Banda Teste"));
     }
 
     @Test
-    @DisplayName("Deve criar artista - POST /api/artistas")
+    @DisplayName("Deve criar artista - POST /api/v1/artistas")
     void deveCriarArtista() throws Exception {
-        ArtistaDTO input = new ArtistaDTO(null, "Novo Artista", null);
-        ArtistaDTO output = new ArtistaDTO(UUID.randomUUID(), "Novo Artista", null);
+        ArtistaDTO input = new ArtistaDTO();
+        input.setNome("Novo Artista");
+        input.setTipo(com.bruno.artistalbum.model.TipoArtista.CANTOR);
+
+        ArtistaDTO output = new ArtistaDTO();
+        output.setId(UUID.randomUUID());
+        output.setNome("Novo Artista");
+        output.setTipo(com.bruno.artistalbum.model.TipoArtista.CANTOR);
 
         when(artistaService.salvar(any(ArtistaDTO.class))).thenReturn(output);
 
-        mockMvc.perform(post("/api/artistas")
+        mockMvc.perform(post("/api/v1/artistas")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isCreated())

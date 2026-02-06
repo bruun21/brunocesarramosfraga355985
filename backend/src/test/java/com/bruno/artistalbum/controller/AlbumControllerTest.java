@@ -46,27 +46,34 @@ class AlbumControllerTest {
     @DisplayName("Deve buscar album por ID - GET /api/albuns/{id}")
     void deveBuscarAlbumPorId() throws Exception {
         UUID id = UUID.randomUUID();
-        // Construtor completo: UUID id, String titulo, Integer anoLancamento,
-        // List<String> urlsImagens, LocalDateTime criadoEm, LocalDateTime atualizadoEm
-        AlbumDTO dto = new AlbumDTO(id, "Album Teste", 2000, null, null, null);
+        AlbumDTO dto = new AlbumDTO();
+        dto.setId(id);
+        dto.setTitulo("Album Teste");
+        dto.setAnoLancamento(2000);
 
         when(albumService.buscarPorId(id)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/albuns/" + id)
+        mockMvc.perform(get("/api/v1/albuns/" + id)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.titulo").value("Album Teste"));
     }
 
     @Test
-    @DisplayName("Deve criar album - POST /api/albuns")
+    @DisplayName("Deve criar album - POST /api/v1/albuns")
     void deveCriarAlbum() throws Exception {
-        AlbumDTO input = new AlbumDTO(null, "Novo Album", 2024, null, null, null);
-        AlbumDTO output = new AlbumDTO(UUID.randomUUID(), "Novo Album", 2024, null, null, null);
+        AlbumDTO input = new AlbumDTO();
+        input.setTitulo("Novo Album");
+        input.setAnoLancamento(2024);
+
+        AlbumDTO output = new AlbumDTO();
+        output.setId(UUID.randomUUID());
+        output.setTitulo("Novo Album");
+        output.setAnoLancamento(2024);
 
         when(albumService.salvar(any(AlbumDTO.class))).thenReturn(output);
 
-        mockMvc.perform(post("/api/albuns")
+        mockMvc.perform(post("/api/v1/albuns")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isCreated())

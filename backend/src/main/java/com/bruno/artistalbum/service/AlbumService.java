@@ -23,6 +23,9 @@ public class AlbumService {
     private AlbumRepository albumRepository;
 
     @Autowired
+    private com.bruno.artistalbum.repository.ArtistaRepository artistaRepository;
+
+    @Autowired
     private MinioService minioService;
 
     @Autowired
@@ -31,6 +34,12 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public Page<AlbumDTO> listarTodos(Pageable paginacao) {
         return albumRepository.findAll(paginacao)
+                .map(album -> new AlbumDTO(album, minioService));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AlbumDTO> buscarPorTipoArtista(com.bruno.artistalbum.model.TipoArtista tipo, Pageable paginacao) {
+        return albumRepository.findByArtistasTipo(tipo, paginacao)
                 .map(album -> new AlbumDTO(album, minioService));
     }
 
@@ -47,8 +56,22 @@ public class AlbumService {
         album.setTitulo(dadosAlbum.getTitulo());
         album.setAnoLancamento(dadosAlbum.getAnoLancamento());
         album.setUrlsImagens(dadosAlbum.getUrlsImagens());
+
+        if (dadosAlbum.getArtistaIds() != null && !dadosAlbum.getArtistaIds().isEmpty()) {
+            java.util.List<com.bruno.artistalbum.model.Artista> artistas = artistaRepository
+                    .findAllById(dadosAlbum.getArtistaIds());
+            album.setArtistas(new java.util.HashSet<>(artistas));
+            // Sincroniza o lado inverso para JPA
+            final Album albumFinal = album;
+            artistas.forEach(a -> a.getAlbuns().add(albumFinal));
+        }
+
         album = albumRepository.save(album);
-        return new AlbumDTO(album);
+
+        AlbumDTO dto = new AlbumDTO(album);
+        messagingTemplate.convertAndSend("/topic/albuns/novos", dto);
+
+        return dto;
     }
 
     @Transactional
@@ -58,6 +81,20 @@ public class AlbumService {
         album.setTitulo(dadosAlbum.getTitulo());
         album.setAnoLancamento(dadosAlbum.getAnoLancamento());
         album.setUrlsImagens(dadosAlbum.getUrlsImagens());
+
+        if (dadosAlbum.getArtistaIds() != null) {
+            // Limpa associações antigas
+            final Album albumParaRemover = album;
+            album.getArtistas().forEach(a -> a.getAlbuns().remove(albumParaRemover));
+
+            java.util.List<com.bruno.artistalbum.model.Artista> artistas = artistaRepository
+                    .findAllById(dadosAlbum.getArtistaIds());
+            album.setArtistas(new java.util.HashSet<>(artistas));
+            // Re-associa
+            final Album albumParaAdicionar = album;
+            artistas.forEach(a -> a.getAlbuns().add(albumParaAdicionar));
+        }
+
         album = albumRepository.save(album);
         return new AlbumDTO(album);
     }

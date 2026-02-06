@@ -20,6 +20,7 @@ public class AlbumDTO {
     private String titulo;
     private Integer anoLancamento;
     private List<String> urlsImagens;
+    private List<UUID> artistaIds;
     private LocalDateTime criadoEm;
     private LocalDateTime atualizadoEm;
 
@@ -32,6 +33,8 @@ public class AlbumDTO {
         this.titulo = album.getTitulo();
         this.anoLancamento = album.getAnoLancamento();
         this.urlsImagens = album.getUrlsImagens() != null ? new ArrayList<>(album.getUrlsImagens()) : null;
+        this.artistaIds = album.getArtistas() != null ? album.getArtistas().stream()
+                .map(com.bruno.artistalbum.model.Artista::getId).collect(Collectors.toList()) : null;
         this.criadoEm = album.getCriadoEm();
         this.atualizadoEm = album.getAtualizadoEm();
     }
@@ -46,6 +49,8 @@ public class AlbumDTO {
         this.anoLancamento = album.getAnoLancamento();
         this.criadoEm = album.getCriadoEm();
         this.atualizadoEm = album.getAtualizadoEm();
+        this.artistaIds = album.getArtistas() != null ? album.getArtistas().stream()
+                .map(com.bruno.artistalbum.model.Artista::getId).collect(Collectors.toList()) : null;
 
         // Gera URLs pré-assinadas para cada arquivo
         if (album.getUrlsImagens() != null && !album.getUrlsImagens().isEmpty()) {

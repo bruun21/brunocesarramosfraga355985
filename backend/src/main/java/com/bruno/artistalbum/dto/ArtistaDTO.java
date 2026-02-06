@@ -15,11 +15,13 @@ import java.util.stream.Collectors;
 public class ArtistaDTO {
     private UUID id;
     private String nome;
+    private com.bruno.artistalbum.model.TipoArtista tipo;
     private LocalDateTime criadoEm;
 
     public ArtistaDTO(Artista artista) {
         this.id = artista.getId();
         this.nome = artista.getNome();
+        this.tipo = artista.getTipo();
         this.criadoEm = artista.getCriadoEm();
     }
 }

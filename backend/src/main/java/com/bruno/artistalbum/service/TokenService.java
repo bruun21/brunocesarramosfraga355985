@@ -29,6 +29,19 @@ public class TokenService {
         }
     }
 
+    public String gerarRefreshToken(Usuario usuario) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            return JWT.create()
+                    .withIssuer("artist-album-api")
+                    .withSubject(usuario.getEmail())
+                    .withExpiresAt(dataExpiracaoRefreshToken())
+                    .sign(algorithm);
+        } catch (JWTCreationException exception) {
+            throw new RuntimeException("Erro ao gerar refresh token JWT", exception);
+        }
+    }
+
     public String getSubject(String tokenJWT) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -43,6 +56,10 @@ public class TokenService {
     }
 
     private Instant dataExpiracao() {
-        return Instant.now().plusSeconds(300);
+        return Instant.now().plusSeconds(300); // 5 minutos
+    }
+
+    private Instant dataExpiracaoRefreshToken() {
+        return Instant.now().plusSeconds(86400); // 24 horas
     }
 }

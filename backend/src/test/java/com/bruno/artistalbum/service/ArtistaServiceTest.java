@@ -36,7 +36,9 @@ class ArtistaServiceTest {
     @Test
     @DisplayName("Deve salvar artista com sucesso")
     void deveSalvarArtista() {
-        ArtistaDTO dto = new ArtistaDTO(null, "Artista Teste", null);
+        ArtistaDTO dto = new ArtistaDTO();
+        dto.setNome("Artista Teste");
+        dto.setTipo(com.bruno.artistalbum.model.TipoArtista.CANTOR);
         Artista artistaSalvo = new Artista();
         artistaSalvo.setId(UUID.randomUUID());
         artistaSalvo.setNome(dto.getNome());

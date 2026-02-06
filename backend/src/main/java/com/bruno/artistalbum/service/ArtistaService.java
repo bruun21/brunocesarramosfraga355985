@@ -24,6 +24,16 @@ public class ArtistaService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ArtistaDTO> buscarPorNome(String nome, Pageable paginacao) {
+        return artistaRepository.findByNomeContainingIgnoreCase(nome, paginacao).map(ArtistaDTO::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ArtistaDTO> buscarPorTipo(com.bruno.artistalbum.model.TipoArtista tipo, Pageable paginacao) {
+        return artistaRepository.findByTipo(tipo, paginacao).map(ArtistaDTO::new);
+    }
+
+    @Transactional(readOnly = true)
     public ArtistaDTO buscarPorId(UUID id) {
         Artista artista = artistaRepository.findById(id)
                 .orElseThrow(() -> new RegraDeNegocioException("Artista não encontrado"));
@@ -34,6 +44,8 @@ public class ArtistaService {
     public ArtistaDTO salvar(ArtistaDTO dadosArtista) {
         Artista artista = new Artista();
         artista.setNome(dadosArtista.getNome());
+        artista.setTipo(dadosArtista.getTipo() != null ? dadosArtista.getTipo()
+                : com.bruno.artistalbum.model.TipoArtista.BANDA);
         artista = artistaRepository.save(artista);
         return new ArtistaDTO(artista);
     }
@@ -43,6 +55,9 @@ public class ArtistaService {
         Artista artista = artistaRepository.findById(id)
                 .orElseThrow(() -> new RegraDeNegocioException("Artista não encontrado"));
         artista.setNome(dadosArtista.getNome());
+        if (dadosArtista.getTipo() != null) {
+            artista.setTipo(dadosArtista.getTipo());
+        }
         artista = artistaRepository.save(artista);
         return new ArtistaDTO(artista);
     }
